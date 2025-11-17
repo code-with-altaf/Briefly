@@ -38,7 +38,7 @@ export function TopNavbar() {
           <NavItems items={navItems} />
           <div className="flex items-center gap-4">
             <NavbarButton variant="secondary">Login</NavbarButton>
-            <NavbarButton variant="primary">Book a call</NavbarButton>
+            <NavbarButton variant="primary">Get Started</NavbarButton>
           </div>
         </NavBody>
 

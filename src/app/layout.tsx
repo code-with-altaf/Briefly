@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { TopNavbar } from "@/components/Navbar";
+import SmoothScroll from "@/components/ScrollSmooth";
+import HomeFooter from "@/components/HomeFooter";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,13 +30,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} hidescrollbar dark antialiased`}
       >
-          <div className="fixed top-4 w-full z-50">
+        <SmoothScroll />
+          <div className="fixed top-2 w-full z-50">
                 <TopNavbar />
           </div>
 
         <main className="pt-24">
           {children}
         </main>
+        <HomeFooter/>
       </body>
     </html>
   );

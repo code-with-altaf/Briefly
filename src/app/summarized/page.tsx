@@ -20,7 +20,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { jsPDF } from 'jspdf';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
 import { saveAs } from 'file-saver';
-import { useSummary } from "@/context/SummaryContext";
+import { renderTextWithBold, useSummary } from "@/context/SummaryContext";
 
 interface SummarySection {
   heading: string;

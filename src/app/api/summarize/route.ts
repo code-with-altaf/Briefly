@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     console.log('Extracted text length:', fullText.length);
 
     // ✅ FIX: Use Gemini 2.5 Flash (current model as of Nov 2025)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const summaryPrompt = `You are an AI assistant that creates concise, professional summaries. 
     
@@ -50,10 +50,10 @@ Return the response in this JSON format:
     ]
   },
   "story": [
-    "Slide 1 content with engaging hook",
-    "Slide 2 content with main insight",
-    "Slide 3 content with supporting details",
-    "Slide 4 content with conclusion/CTA"
+    "content with engaging hook",
+    "content with main insight",
+    "content with supporting details",
+    "content with conclusion/CTA"
   ]
 }`;
 

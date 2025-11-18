@@ -1,7 +1,7 @@
 "use client";
 
 import useEmblaCarousel from "embla-carousel-react";
-import StoryCard from "./StoryCard";
+import DummyStoryCard from "./DummyStoryCard";
 
 const StoryCarousel = () => {
   const [emblaRef] = useEmblaCarousel({
@@ -17,19 +17,18 @@ const StoryCarousel = () => {
         <div className="flex gap-6">
           {/* Add as many story cards as you want */}
           <div className="flex-[0_0_380px]">
-            <StoryCard />
+                <DummyStoryCard />
           </div>
 
           <div className="flex-[0_0_380px]">
-            <StoryCard />
+                <DummyStoryCard />          </div>
+
+          <div className="flex-[0_0_380px]">
+            <DummyStoryCard />
           </div>
 
           <div className="flex-[0_0_380px]">
-            <StoryCard />
-          </div>
-
-          <div className="flex-[0_0_380px]">
-            <StoryCard />
+            <DummyStoryCard />
           </div>
 
         </div>

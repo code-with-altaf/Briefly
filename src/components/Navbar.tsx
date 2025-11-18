@@ -10,6 +10,7 @@ import {
   MobileNavToggle,
   MobileNavMenu,
 } from "@/components/ui/resizable-navbar";
+import Link from "next/link";
 import { useState } from "react";
 export function TopNavbar() {
   const navItems = [
@@ -37,8 +38,8 @@ export function TopNavbar() {
           <NavbarLogo />
           <NavItems items={navItems} />
           <div className="flex items-center gap-4">
-            <NavbarButton variant="secondary">Login</NavbarButton>
-            <NavbarButton variant="primary">Get Started</NavbarButton>
+            {/* <NavbarButton variant="secondary">Login</NavbarButton> */}
+        <NavbarButton href="/upload"  variant="primary">Get Started</NavbarButton>  
           </div>
         </NavBody>
 
@@ -57,30 +58,31 @@ export function TopNavbar() {
             onClose={() => setIsMobileMenuOpen(false)}
           >
             {navItems.map((item, idx) => (
-              <a
+              <Link 
                 key={`mobile-link-${idx}`}
                 href={item.link}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="relative text-neutral-600 dark:text-neutral-300"
               >
                 <span className="block">{item.name}</span>
-              </a>
+              </Link>
             ))}
             <div className="flex w-full flex-col gap-4">
-              <NavbarButton
+              {/* <NavbarButton
                 onClick={() => setIsMobileMenuOpen(false)}
                 variant="primary"
                 className="w-full"
               >
                 Login
-              </NavbarButton>
-              <NavbarButton
+              </NavbarButton> */}
+              <Link href="/upload">   <NavbarButton
                 onClick={() => setIsMobileMenuOpen(false)}
                 variant="primary"
                 className="w-full"
+           
               >
-                Book a call
-              </NavbarButton>
+             Get Started 
+              </NavbarButton></Link>
             </div>
           </MobileNavMenu>
         </MobileNav>

@@ -6,71 +6,152 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-const demoStories: string[] = [
-  "Executive Summary: The uploaded PDF highlights the rapid adoption of AI across global industries. It explains how automation, data analysis, and intelligent decision-making are reshaping traditional business workflows.",
-  
-  "Market Insight: The report outlines a surge in enterprise AI investments during the last three years. Companies are shifting from experimental use cases to full-scale deployment, focusing on efficiency and operational accuracy.",
-  
-  "Technical Breakdown: The document provides an in-depth explanation of machine learning pipelines, data preprocessing requirements, model evaluation metrics, and integration challenges faced by mid-sized organizations.",
-  
-  "Final Assessment: The PDF concludes by emphasizing that AI is no longer optional. Businesses that adopt structured automation and analytics early gain measurable advantages in productivity, cost reduction, and strategic forecasting."
-];
-
 const StoryCard: React.FC = () => {
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [storyData, setStoryData] = useState<string[]>([]);
+  const [error, setError] = useState(false);
+  const [direction, setDirection] = useState(0); // 👈 NEW ( -1 = left, 1 = right )
 
   useEffect(() => {
-    const timeout = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(timeout);
-  }, [index]);
+    const loadData = async () => {
+      try {
+        const storedData = localStorage.getItem("summaryData");
+
+        if (!storedData) {
+          setError(true);
+          setLoading(false);
+          return;
+        }
+
+        const data = JSON.parse(storedData);
+
+        if (!data.story || data.story.length === 0) {
+          setError(true);
+          setLoading(false);
+          return;
+        }
+
+        const processedStory = data.story.map((item: unknown) => {
+          if (typeof item === "string") return item;
+
+          if (item && typeof item === "object") {
+            const obj = item as Record<string, unknown>;
+            return (
+              obj["content"] ||
+              obj["text"] ||
+              obj["title"] ||
+              JSON.stringify(obj)
+            );
+          }
+
+          return String(item);
+        });
+
+        setStoryData(processedStory);
+        setLoading(false);
+      } catch (err) {
+        console.error("Failed to load story data:", err);
+        setError(true);
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // 🔥 ANIMATION VARIANTS (depends on direction)
+  const variants = {
+    enter: (dir: number) => ({
+      x: dir === 1 ? 200 : -200,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (dir: number) => ({
+      x: dir === 1 ? -200 : 200,
+      opacity: 0,
+    }),
+  };
 
   const next = () => {
-    if (index < demoStories.length - 1) {
-      setLoading(true);
+    if (index < storyData.length - 1) {
+      setDirection(1); // 👉 NEXT = right side animation
       setIndex(index + 1);
     }
   };
 
   const prev = () => {
     if (index > 0) {
-      setLoading(true);
+      setDirection(-1); // 👈 PREVIOUS = left side animation
       setIndex(index - 1);
     }
   };
 
-  return (
-    <Card className="w-[380px] h-[600px] bg-black text-white rounded-3xl overflow-hidden shadow-2xl relative border border-white/20">
+  if (error) {
+    return (
+      <Card className="w-[380px] h-[600px] bg-black text-white rounded-3xl overflow-hidden shadow-2xl relative border border-red-500/50">
+        <CardContent className="p-6 flex flex-col items-center justify-center h-full gap-4">
+          <div className="text-6xl">❌</div>
+          <p className="text-xl font-bold text-center">Failed to Load Story</p>
+          <p className="text-sm text-gray-400 text-center">
+            No story data found. Please upload a PDF first.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
-      <div onClick={prev} className="absolute left-0 top-0 h-full w-1/2 z-30 cursor-pointer" />
-      <div onClick={next} className="absolute right-0 top-0 h-full w-1/2 z-30 cursor-pointer" />
-
-      <CardContent className="p-6 flex items-center justify-center h-full">
-        {loading ? (
+  if (loading) {
+    return (
+      <Card className="w-[380px] h-[600px] bg-black text-white rounded-3xl overflow-hidden shadow-2xl relative border border-white/20">
+        <CardContent className="p-6 flex items-center justify-center h-full">
           <div className="w-full flex flex-col gap-4">
             <Skeleton className="h-6 w-3/4 bg-gray-700" />
             <Skeleton className="h-6 w-4/5 bg-gray-700" />
             <Skeleton className="h-6 w-2/3 bg-gray-700" />
             <Skeleton className="h-6 w-1/2 bg-gray-700" />
           </div>
-        ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.4 }}
-              className="text-lg leading-relaxed z-10"
-            >
-              {demoStories[index]}
-            </motion.div>
-          </AnimatePresence>
-        )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-[380px] h-[600px] bg-black text-white rounded-3xl overflow-hidden shadow-2xl relative border border-white/20">
+      {/* LEFT CLICK */}
+      <div
+        onClick={prev}
+        className="absolute left-0 top-0 h-full w-1/2 z-30 cursor-pointer"
+      />
+
+      {/* RIGHT CLICK */}
+      <div
+        onClick={next}
+        className="absolute right-0 top-0 h-full w-1/2 z-30 cursor-pointer"
+      />
+
+      <CardContent className="p-6 flex items-center justify-center h-full">
+        <AnimatePresence custom={direction} mode="wait">
+          <motion.div
+            key={index}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.4 }}
+            className="text-lg leading-relaxed z-10"
+          >
+            {storyData[index]}
+          </motion.div>
+        </AnimatePresence>
       </CardContent>
 
       <div className="absolute top-4 left-3 right-3 flex gap-2">
-        {demoStories.map((_, i) => (
+        {storyData.map((_, i) => (
           <div
             key={i}
             className={cn(
@@ -79,6 +160,10 @@ const StoryCard: React.FC = () => {
             )}
           />
         ))}
+      </div>
+
+      <div className="absolute bottom-4 right-4 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1 text-sm">
+        {index + 1} / {storyData.length}
       </div>
     </Card>
   );

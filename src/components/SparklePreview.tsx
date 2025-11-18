@@ -1,10 +1,9 @@
 "use client";
-import React from "react";
 import { SparklesCore } from "./ui/sparkles";
 
 export function SparklesPreview() {
   return (
-    <div className="h-[30rem] w-full dark:bg-neutral-950/80 flex flex-col items-center justify-center overflow-hidden rounded-md">
+    <div className="md:h-[35rem] h-[40rem] w-full dark:bg-neutral-950/80 flex flex-col items-center justify-center overflow-hidden rounded-md">
       <h1 className="md:text-9xl text-8xl lg:text-9xl font-bold text-center text-white relative z-20">
         Briefly
       </h1>
@@ -17,16 +16,16 @@ export function SparklesPreview() {
 
         {/* Core component */}
         <SparklesCore
-          background="transparent"
+          background="#0A0A0A"
           minSize={0.3}
           maxSize={1}
           particleDensity={1200}
-          className="md:w-full w-sm mx-auto h-full"
+          className="md:w-full bg-[#0A0A0A] w-md mx-auto h-full"
           particleColor="#FFFFFF"
         />
 
         {/* Radial Gradient to prevent sharp edges */}
-        <div className="absolute inset-0 w-full h-full bg-[#09090B] [mask-image:radial-gradient(350px_200px_at_top,transparent_20%,white)]"></div>
+        <div className="absolute inset-0 w-full h-full bg-[#0A0A0A] [mask-image:radial-gradient(350px_200px_at_top,transparent_20%,white)]"></div>
       </div>
     </div>
   );

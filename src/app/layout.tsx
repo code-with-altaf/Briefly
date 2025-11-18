@@ -30,15 +30,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} hidescrollbar dark antialiased`}
       >
-        <SmoothScroll />
-          <div className="fixed top-2 w-full z-50">
-                <TopNavbar />
-          </div>
-
-        <main className="pt-24">
-          {children}
-        </main>
-        <HomeFooter/>
+       {children}
       </body>
     </html>
   );

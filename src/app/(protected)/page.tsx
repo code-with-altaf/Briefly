@@ -11,7 +11,7 @@ const page = () => {
       <div className="relative">
 
         {/* 🔥 Button now OVER the SparklesPreview background */}
-        <div className="absolute top-6 left-0 right-0 flex justify-center z-20">
+        <div className="absolute top-20 md:top-14 left-0 right-0 flex justify-center z-20">
           <HoverBorderGradient
             containerClassName="rounded-full"
             as="button"
@@ -26,7 +26,7 @@ const page = () => {
 
       {/* 🌊 Ripple Background Hero Section */}
       <section className="pt-0 ">
-        <div className="relative flex py-5 w-full flex-col items-start justify-start overflow-hidden">
+        <div className="relative flex py-10 w-full flex-col items-start justify-start overflow-hidden">
           <BackgroundRippleEffect />
 
           <div className="mt-40 w-full">
@@ -47,7 +47,9 @@ const page = () => {
         </div>
       </section>
 
-      <StoryCarousel />
+     <section className="pt-10">
+       <StoryCarousel />
+     </section>
     </div>
   );
 };

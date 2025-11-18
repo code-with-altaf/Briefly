@@ -6,17 +6,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-const demoStories: string[] = [
-  "Executive Summary: The uploaded PDF highlights the rapid adoption of AI across global industries. It explains how automation, data analysis, and intelligent decision-making are reshaping traditional business workflows.",
-  
-  "Market Insight: The report outlines a surge in enterprise AI investments during the last three years. Companies are shifting from experimental use cases to full-scale deployment, focusing on efficiency and operational accuracy.",
-  
-  "Technical Breakdown: The document provides an in-depth explanation of machine learning pipelines, data preprocessing requirements, model evaluation metrics, and integration challenges faced by mid-sized organizations.",
-  
-  "Final Assessment: The PDF concludes by emphasizing that AI is no longer optional. Businesses that adopt structured automation and analytics early gain measurable advantages in productivity, cost reduction, and strategic forecasting."
-];
+interface DummyStoryCardProps {
+  stories: string[];
+}
 
-const DummyStoryCard: React.FC = () => {
+const DummyStoryCard: React.FC<DummyStoryCardProps> = ({ stories }) => {
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +20,7 @@ const DummyStoryCard: React.FC = () => {
   }, [index]);
 
   const next = () => {
-    if (index < demoStories.length - 1) {
+    if (index < stories.length - 1) {
       setLoading(true);
       setIndex(index + 1);
     }
@@ -41,7 +35,6 @@ const DummyStoryCard: React.FC = () => {
 
   return (
     <Card className="w-[380px] h-[600px] bg-black text-white rounded-3xl overflow-hidden shadow-2xl relative border border-white/20">
-
       <div onClick={prev} className="absolute left-0 top-0 h-full w-1/2 z-30 cursor-pointer" />
       <div onClick={next} className="absolute right-0 top-0 h-full w-1/2 z-30 cursor-pointer" />
 
@@ -63,14 +56,14 @@ const DummyStoryCard: React.FC = () => {
               transition={{ duration: 0.4 }}
               className="text-lg leading-relaxed z-10"
             >
-              {demoStories[index]}
+              {stories[index]}
             </motion.div>
           </AnimatePresence>
         )}
       </CardContent>
 
       <div className="absolute top-4 left-3 right-3 flex gap-2">
-        {demoStories.map((_, i) => (
+        {stories.map((_, i) => (
           <div
             key={i}
             className={cn(

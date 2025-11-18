@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { extractText } from 'unpdf';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY! || 'AIzaSyABbhtCpI3qj1m6jMvSAPtynWbuhxs4hFM');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(req: NextRequest) {
   try {

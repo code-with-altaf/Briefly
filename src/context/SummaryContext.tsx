@@ -38,23 +38,30 @@ export const SummaryProvider = ({ children }: { children: ReactNode }) => {
   const [currentLanguage, setCurrentLanguage] = useState<string>('English');
   const [isRegenerating, setIsRegenerating] = useState(false);
 
-  const processStoryData = (story: unknown[]): string[] => {
-    return story.map((item: unknown) => {
-      if (typeof item === "string") return item;
+ const processStoryData = (story: unknown[]): string[] => {
+  return story.map((item: unknown) => {
+    if (typeof item === "string") return item;
+    
+    if (item && typeof item === "object") {
+      const obj = item as Record<string, unknown>;
       
-      if (item && typeof item === "object") {
-        const obj = item as Record<string, unknown>;
-        return (
-          (obj["content"] as string) ||
-          (obj["text"] as string) ||
-          (obj["title"] as string) ||
-          JSON.stringify(obj)
-        );
+      // If it has both title and content, combine them
+      if (obj["title"] && obj["content"]) {
+        return `${obj["title"]}\n\n${obj["content"]}`;
       }
       
-      return String(item);
-    });
-  };
+      return (
+        (obj["content"] as string) ||
+        (obj["text"] as string) ||
+        (obj["title"] as string) ||
+        JSON.stringify(obj)
+      );
+    }
+    
+    return String(item);
+  });
+};
+
 
   useEffect(() => {
     const loadData = () => {

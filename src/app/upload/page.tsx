@@ -11,10 +11,23 @@ export default function UploadPage() {
   const router = useRouter();
 
   // Clear previous summary data when user lands on upload page
-  useEffect(() => {
-    localStorage.removeItem('summaryData');
-    localStorage.removeItem('uploadedFile');
-  }, []);
+useEffect(() => {
+  const clearStorage = () => {
+    try {
+      localStorage.removeItem('summaryData');
+      localStorage.removeItem('uploadedFile');
+    } catch (error) {
+      console.error('Failed to clear localStorage:', error);
+    }
+  };
+
+  clearStorage();
+  const timer = setTimeout(clearStorage, 100);
+  
+  return () => clearTimeout(timer);
+}, []);
+
+
 
   const handleFileUpload = (uploadedFiles: File[]) => {
     setFiles(uploadedFiles);

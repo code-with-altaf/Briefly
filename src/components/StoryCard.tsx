@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useSummary } from "@/context/SummaryContext";
+import { renderTextWithBold, useSummary } from "@/context/SummaryContext";
 
 const StoryCard: React.FC = () => {
   const [index, setIndex] = useState(0);
@@ -99,7 +99,7 @@ const StoryCard: React.FC = () => {
             transition={{ duration: 0.4 }}
             className="text-lg leading-relaxed z-10"
           >
-            {storyData[index]}
+            {renderTextWithBold(storyData[index])}
           </motion.div>
         </AnimatePresence>
       </CardContent>

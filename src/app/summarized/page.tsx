@@ -20,7 +20,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { jsPDF } from 'jspdf';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
 import { saveAs } from 'file-saver';
-import { useSummary } from "@/context/SummaryContext";
+import { useSummary, renderTextWithBold } from "@/contexts/SummaryContext";
 
 interface SummarySection {
   heading: string;
@@ -249,7 +249,6 @@ function SummarizedContent() {
     currentLanguage, 
     isRegenerating, 
     updateSummaryData, 
-    setCurrentLanguage, 
     setIsRegenerating 
   } = useSummary();
   
@@ -356,7 +355,6 @@ function SummarizedContent() {
           </p>
         )}
 
-        {/* Mobile View Controls */}
         <div className="flex justify-center items-center gap-3 mt-6 lg:hidden">
           <div className="inline-flex rounded-lg border border-neutral-300 dark:border-neutral-700 p-1 bg-neutral-100 dark:bg-neutral-900">
             <button
@@ -393,7 +391,6 @@ function SummarizedContent() {
         </div>
       </div>
 
-      {/* Desktop View */}
       <div className="hidden lg:grid lg:grid-cols-2 gap-6 max-w-6xl mx-auto mt-10 px-6">
         <div className="bg-neutral-50 dark:bg-neutral-900 rounded-2xl p-8 border border-neutral-200 dark:border-neutral-800">
           <div className="flex items-center justify-between mb-6">
@@ -429,10 +426,10 @@ function SummarizedContent() {
               {summaryData.sections.map((section, idx) => (
                 <div key={idx}>
                   <h3 className="text-lg font-semibold text-black dark:text-white mb-2">
-                    {section.heading}
+                    {renderTextWithBold(section.heading)}
                   </h3>
                   <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                    {section.content}
+                    {renderTextWithBold(section.content)}
                   </p>
                 </div>
               ))}
@@ -447,13 +444,12 @@ function SummarizedContent() {
         </div>
       </div>
 
-      {/* Mobile View */}
       <div className="lg:hidden max-w-lg mx-auto mt-10">
         {viewMode === "summary" ? (
           <div className="bg-neutral-50 dark:bg-neutral-900 rounded-2xl p-6 border border-neutral-200 dark:border-neutral-800">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-black dark:text-white">
-                 Summary
+                📄 Summary
               </h2>
               <div className="flex items-center gap-2">
                 <CopyButton summaryData={summaryData} />
@@ -465,7 +461,7 @@ function SummarizedContent() {
               <div className="flex flex-col items-center justify-center py-10">
                 <IconRefresh size={32} className="animate-spin text-neutral-400 mb-3" />
                 <p className="text-sm text-neutral-600 dark:text-neutral-400 text-center">
-                  Regenerating in selected language.....
+                  Regenerating summary in selected language...
                 </p>
               </div>
             ) : (
@@ -473,10 +469,10 @@ function SummarizedContent() {
                 {summaryData.sections.map((section, idx) => (
                   <div key={idx}>
                     <h3 className="text-base font-semibold text-black dark:text-white mb-1">
-                      {section.heading}
+                      {renderTextWithBold(section.heading)}
                     </h3>
                     <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                      {section.content}
+                      {renderTextWithBold(section.content)}
                     </p>
                   </div>
                 ))}

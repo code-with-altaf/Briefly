@@ -2,19 +2,16 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-// Interface for a single section in the summary
 interface SummarySection {
   heading: string;
   content: string;
 }
 
-// Interface for the summary data structure
 interface SummaryData {
   title: string;
   sections: SummarySection[];
 }
 
-// Interface for the API response from the summarize endpoint
 interface ApiResponse {
   success?: boolean;
   fileName?: string;
@@ -23,7 +20,6 @@ interface ApiResponse {
   language?: string;
 }
 
-// Interface for the Context type
 interface SummaryContextType {
   summaryData: SummaryData | null;
   storyData: string[];
@@ -34,17 +30,14 @@ interface SummaryContextType {
   setIsRegenerating: (value: boolean) => void;
 }
 
-// Create the context with undefined as initial value
 const SummaryContext = createContext<SummaryContextType | undefined>(undefined);
 
-// Provider component
 export const SummaryProvider = ({ children }: { children: ReactNode }) => {
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [storyData, setStoryData] = useState<string[]>([]);
   const [currentLanguage, setCurrentLanguage] = useState<string>('English');
   const [isRegenerating, setIsRegenerating] = useState(false);
 
-  // Helper function to process story data
   const processStoryData = (story: unknown[]): string[] => {
     return story.map((item: unknown) => {
       if (typeof item === "string") return item;
@@ -63,7 +56,6 @@ export const SummaryProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // Load data from localStorage on mount
   useEffect(() => {
     const loadData = () => {
       try {
@@ -71,14 +63,9 @@ export const SummaryProvider = ({ children }: { children: ReactNode }) => {
         
         if (storedData) {
           const data = JSON.parse(storedData) as ApiResponse;
-          
-          // Set summary data
           setSummaryData(data.summary);
-          
-          // Set language
           setCurrentLanguage(data.language || 'English');
           
-          // Process and set story data
           if (data.story && data.story.length > 0) {
             const processedStory = processStoryData(data.story);
             setStoryData(processedStory);
@@ -92,7 +79,6 @@ export const SummaryProvider = ({ children }: { children: ReactNode }) => {
     loadData();
   }, []);
 
-  // Function to update summary data (called after language change)
   const updateSummaryData = (data: ApiResponse) => {
     setSummaryData(data.summary);
     setCurrentLanguage(data.language || 'English');
@@ -103,7 +89,6 @@ export const SummaryProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Context value object
   const value: SummaryContextType = {
     summaryData,
     storyData,
@@ -121,7 +106,6 @@ export const SummaryProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Custom hook to use the Summary context
 export const useSummary = () => {
   const context = useContext(SummaryContext);
   
@@ -130,4 +114,17 @@ export const useSummary = () => {
   }
   
   return context;
+};
+
+// Helper function to render text with bold markdown (**text**)
+export const renderTextWithBold = (text: string): React.ReactNode => {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      const boldText = part.slice(2, -2);
+      return <strong key={index} className="font-bold">{boldText}</strong>;
+    }
+    return <React.Fragment key={index}>{part}</React.Fragment>;
+  });
 };

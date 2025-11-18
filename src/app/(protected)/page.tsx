@@ -2,6 +2,7 @@ import { SparklesPreview } from "@/components/SparklePreview";
 import StoryCarousel from "@/components/StoryCrousel";
 import { BackgroundRippleEffect } from "@/components/ui/background-ripple-effect";
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
+import Link from "next/link";
 
 const page = () => {
   return (
@@ -39,9 +40,9 @@ const page = () => {
             </p>
 
             <div className="flex items-center justify-center mt-6 relative z-10">
-              <button className="shadow-[0_0_0_3px_#000000_inset] px-6 py-2 bg-transparent border border-black dark:border-white dark:text-white text-black rounded-lg font-bold transform hover:-translate-y-1 transition duration-400">
+              <Link href="/upload" className="shadow-[0_0_0_3px_#000000_inset] px-6 py-2 bg-transparent border border-black dark:border-white dark:text-white text-black rounded-lg font-bold transform hover:-translate-y-1 transition duration-400">
                 Get Started
-              </button>
+              </Link>
             </div>
           </div>
         </div>

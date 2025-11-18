@@ -1,18 +1,26 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useRouter } from "next/navigation";
+
 
 export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  // Clear previous summary data when user lands on upload page
+  useEffect(() => {
+    localStorage.removeItem('summaryData');
+    localStorage.removeItem('uploadedFile');
+  }, []);
+
   const handleFileUpload = (uploadedFiles: File[]) => {
     setFiles(uploadedFiles);
     console.log("Uploaded:", uploadedFiles);
   };
+
 
   const handleGenerateSummary = async () => {
     if (files.length === 0) {
@@ -109,7 +117,6 @@ export default function UploadPage() {
       )}
 
       <div className="mt-10">
-        {/* ✅ OPTION 1: Conditional wrapper (Recommended) */}
         {isLoading ? (
           <button
             disabled

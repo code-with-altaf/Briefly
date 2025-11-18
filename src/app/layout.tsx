@@ -4,6 +4,7 @@ import "./globals.css";
 import { TopNavbar } from "@/components/Navbar";
 import SmoothScroll from "@/components/ScrollSmooth";
 import HomeFooter from "@/components/HomeFooter";
+import { SummaryProvider } from "@/context/SummaryContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,7 +31,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} hidescrollbar dark antialiased`}
       >
+        <SummaryProvider>
        {children}
+        </SummaryProvider>
       </body>
     </html>
   );

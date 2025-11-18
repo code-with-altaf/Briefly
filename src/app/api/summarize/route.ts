@@ -8,6 +8,7 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
+    const language = formData.get('language') as string || 'English'; // ✅ New language param
 
     if (!file) {
       return NextResponse.json(
@@ -16,24 +17,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Convert file to Uint8Array
     const bytes = await file.arrayBuffer();
     const uint8Array = new Uint8Array(bytes);
     
-    // Extract text from PDF using unpdf
     const { text: extractedText } = await extractText(uint8Array);
     const fullText = Array.isArray(extractedText) ? extractedText.join('\n') : extractedText;
     
     console.log('Extracted text length:', fullText.length);
+    console.log('Target language:', language);
 
-    // ✅ FIX: Use Gemini 2.5 Flash (current model as of Nov 2025)
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-    const summaryPrompt = `You are an AI assistant that creates concise, professional summaries. 
+    // ✅ Updated prompt with language specification
+    const summaryPrompt = `You are an AI assistant that creates concise, professional summaries IN ${language.toUpperCase()} LANGUAGE.
     
 Analyze the following PDF content and create:
 1. A comprehensive summary with 4 sections: Executive Summary, Key Points, Technical Details, and Conclusion
 2. A story-format version optimized for Instagram/social media (4 slides with engaging titles and concise content)
+
+**IMPORTANT**: Generate ALL content in ${language} language. Translate and adapt the content appropriately for ${language} speakers.
 
 PDF Content:
 ${fullText.substring(0, 10000)}
@@ -41,7 +43,7 @@ ${fullText.substring(0, 10000)}
 Return the response in this JSON format:
 {
   "summary": {
-    "title": "Document Title",
+    "title": "Document Title (in ${language})",
     "sections": [
       {"heading": "Executive Summary", "content": "..."},
       {"heading": "Key Points", "content": "..."},
@@ -60,7 +62,6 @@ Return the response in this JSON format:
     const result = await model.generateContent(summaryPrompt);
     const responseText = result.response.text();
     
-    // Parse JSON response
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     const summaryData = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
 
@@ -73,6 +74,7 @@ Return the response in this JSON format:
       fileName: file.name,
       summary: summaryData.summary,
       story: summaryData.story,
+      language: language, // ✅ Return selected language
     });
 
   } catch (error) {

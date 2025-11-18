@@ -1,69 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useSummary } from "@/context/SummaryContext";
 
 const StoryCard: React.FC = () => {
   const [index, setIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [storyData, setStoryData] = useState<string[]>([]);
-  const [error, setError] = useState(false);
-  const [direction, setDirection] = useState(0); // -1 = left, 1 = right
+  const [direction, setDirection] = useState(0);
+  const { storyData, isRegenerating } = useSummary();
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const storedData = localStorage.getItem("summaryData");
-
-        if (!storedData) {
-          setError(true);
-          setLoading(false);
-          return;
-        }
-
-        const data = JSON.parse(storedData);
-
-        if (!data.story || data.story.length === 0) {
-          setError(true);
-          setLoading(false);
-          return;
-        }
-
-        const processedStory = data.story.map((item: unknown) => {
-          if (typeof item === "string") return item;
-
-          if (item && typeof item === "object") {
-            const obj = item as Record<string, unknown>;
-            return (
-              obj["content"] ||
-              obj["text"] ||
-              obj["title"] ||
-              JSON.stringify(obj)
-            );
-          }
-
-          return String(item);
-        });
-
-        setStoryData(processedStory);
-        setLoading(false);
-      } catch (err) {
-        console.error("Failed to load story data:", err);
-        setError(true);
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
-  // 🔥 FIXED ANIMATION VARIANTS
   const variants = {
     enter: (dir: number) => ({
-      x: dir === 1 ? 300 : -300, // ✅ Right (1) enters from +300, Left (-1) enters from -300
+      x: dir === 1 ? 200 : -200,
       opacity: 0,
     }),
     center: {
@@ -71,26 +22,31 @@ const StoryCard: React.FC = () => {
       opacity: 1,
     },
     exit: (dir: number) => ({
-      x: dir === 1 ? -300 : 300, // ✅ Right (1) exits to -300, Left (-1) exits to +300
+      x: dir === 1 ? -200 : 200,
       opacity: 0,
     }),
   };
 
   const next = () => {
     if (index < storyData.length - 1) {
-      setDirection(1); // 👉 NEXT = slide from right
+      setDirection(1);
       setIndex(index + 1);
     }
   };
 
   const prev = () => {
     if (index > 0) {
-      setDirection(-1); // 👈 PREVIOUS = slide from left
+      setDirection(-1);
       setIndex(index - 1);
     }
   };
 
-  if (error) {
+  // Reset index when story data changes
+  React.useEffect(() => {
+    setIndex(0);
+  }, [storyData]);
+
+  if (!storyData || storyData.length === 0) {
     return (
       <Card className="w-[380px] h-[600px] bg-black text-white rounded-3xl overflow-hidden shadow-2xl relative border border-red-500/50">
         <CardContent className="p-6 flex flex-col items-center justify-center h-full gap-4">
@@ -104,7 +60,7 @@ const StoryCard: React.FC = () => {
     );
   }
 
-  if (loading) {
+  if (isRegenerating) {
     return (
       <Card className="w-[380px] h-[600px] bg-black text-white rounded-3xl overflow-hidden shadow-2xl relative border border-white/20">
         <CardContent className="p-6 flex items-center justify-center h-full">
@@ -121,13 +77,11 @@ const StoryCard: React.FC = () => {
 
   return (
     <Card className="w-[380px] h-[600px] bg-black text-white rounded-3xl overflow-hidden shadow-2xl relative border border-white/20">
-      {/* LEFT CLICK */}
       <div
         onClick={prev}
         className="absolute left-0 top-0 h-full w-1/2 z-30 cursor-pointer"
       />
 
-      {/* RIGHT CLICK */}
       <div
         onClick={next}
         className="absolute right-0 top-0 h-full w-1/2 z-30 cursor-pointer"
@@ -142,11 +96,7 @@ const StoryCard: React.FC = () => {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ 
-              type: "spring", 
-              stiffness: 300, 
-              damping: 30 
-            }}
+            transition={{ duration: 0.4 }}
             className="text-lg leading-relaxed z-10"
           >
             {storyData[index]}

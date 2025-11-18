@@ -25,6 +25,7 @@ export default function UploadPage() {
     try {
       const formData = new FormData();
       formData.append('file', files[0]);
+      formData.append('language', 'English');
 
       const response = await fetch('/api/summarize', {
         method: 'POST',
@@ -33,29 +34,51 @@ export default function UploadPage() {
 
       const data = await response.json();
 
-      // ✅ FIX: Only redirect if successful
       if (!response.ok) {
         throw new Error(data.details || data.error || 'Failed to generate summary');
       }
 
-      // ✅ Verify data structure before saving
       if (!data.summary || !data.story) {
         throw new Error('Invalid response format from API');
       }
 
       localStorage.setItem('summaryData', JSON.stringify(data));
       
-      // ✅ Only redirect after successful save
-      router.push(`/summarized?file=${encodeURIComponent(files[0].name)}`);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        try {
+          const fileData = {
+            name: files[0].name,
+            type: files[0].type,
+            size: files[0].size,
+            data: reader.result
+          };
+          
+          const dataStr = JSON.stringify(fileData);
+          if (dataStr.length > 4.5 * 1024 * 1024) {
+            console.warn('File too large for localStorage, skipping language regeneration feature');
+            localStorage.removeItem('uploadedFile');
+          } else {
+            localStorage.setItem('uploadedFile', dataStr);
+          }
+        } catch (e) {
+          console.error('Error storing file:', e);
+        }
+        
+        router.push(`/summarized?file=${encodeURIComponent(files[0].name)}`);
+      };
+      
+      reader.onerror = () => {
+        console.error('Error reading file');
+        router.push(`/summarized?file=${encodeURIComponent(files[0].name)}`);
+      };
+      
+      reader.readAsDataURL(files[0]);
 
     } catch (error) {
       console.error('Error:', error);
-      
-      // ✅ Show detailed error message
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate summary';
       alert(`Error: ${errorMessage}\n\nPlease try again in a few seconds.`);
-      
-      // ✅ Don't redirect on error
       setIsLoading(false);
     }
   };
@@ -79,32 +102,37 @@ export default function UploadPage() {
         <div className="mt-8 bg-neutral-100 dark:bg-neutral-800 p-4 rounded-xl w-full max-w-lg">
           <h2 className="font-bold text-black dark:text-white mb-2">Uploaded File:</h2>
           <p className="text-neutral-600 dark:text-neutral-300">{files[0].name}</p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+            {(files[0].size / 1024 / 1024).toFixed(2)} MB
+          </p>
         </div>
       )}
 
       <div className="mt-10">
-        <HoverBorderGradient
-          containerClassName="rounded-full"
-          onClick={handleGenerateSummary}
-          as="button"
-          className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2 px-10 py-3 text-lg font-semibold"
-        >
-          <span>
-            {isLoading ? (
-              <span className="flex items-center gap-2">
-                <span className="animate-pulse">⏳</span>
-                Generating...
-              </span>
-            ) : (
-              "Generate Summary ⚡"
-            )}
-          </span>
-        </HoverBorderGradient>
+        {/* ✅ OPTION 1: Conditional wrapper (Recommended) */}
+        {isLoading ? (
+          <button
+            disabled
+            className="rounded-full px-10 py-3 text-lg font-semibold bg-neutral-200 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 cursor-not-allowed flex items-center gap-2"
+          >
+            <span className="animate-pulse">⏳</span>
+            Generating...
+          </button>
+        ) : (
+          <HoverBorderGradient
+            containerClassName="rounded-full"
+            onClick={handleGenerateSummary}
+            as="button"
+            className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2 px-10 py-3 text-lg font-semibold"
+          >
+            <span>Generate Summary ⚡</span>
+          </HoverBorderGradient>
+        )}
       </div>
 
       {isLoading && (
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-4 text-center">
-          Processing your PDF... This may take 10-20 seconds
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-4 text-center max-w-md">
+          Processing your PDF... This may take 10-30 seconds depending on file size.
         </p>
       )}
     </div>

@@ -3,37 +3,35 @@ import React, { useState, useEffect } from "react";
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useRouter } from "next/navigation";
-
+import { useSummary } from "@/context/SummaryContext"; // ✅ Import context
 
 export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { updateSummaryData } = useSummary(); // ✅ Use context
 
   // Clear previous summary data when user lands on upload page
-useEffect(() => {
-  const clearStorage = () => {
-    try {
-      localStorage.removeItem('summaryData');
-      localStorage.removeItem('uploadedFile');
-    } catch (error) {
-      console.error('Failed to clear localStorage:', error);
-    }
-  };
+  useEffect(() => {
+    const clearStorage = () => {
+      try {
+        localStorage.removeItem('summaryData');
+        localStorage.removeItem('uploadedFile');
+      } catch (error) {
+        console.error('Failed to clear localStorage:', error);
+      }
+    };
 
-  clearStorage();
-  const timer = setTimeout(clearStorage, 100);
-  
-  return () => clearTimeout(timer);
-}, []);
-
-
+    clearStorage();
+    const timer = setTimeout(clearStorage, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleFileUpload = (uploadedFiles: File[]) => {
     setFiles(uploadedFiles);
     console.log("Uploaded:", uploadedFiles);
   };
-
 
   const handleGenerateSummary = async () => {
     if (files.length === 0) {
@@ -63,38 +61,40 @@ useEffect(() => {
         throw new Error('Invalid response format from API');
       }
 
+      // ✅ Save to localStorage
       localStorage.setItem('summaryData', JSON.stringify(data));
       
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        try {
-          const fileData = {
-            name: files[0].name,
-            type: files[0].type,
-            size: files[0].size,
-            data: reader.result
-          };
-          
-          const dataStr = JSON.stringify(fileData);
-          if (dataStr.length > 4.5 * 1024 * 1024) {
-            console.warn('File too large for localStorage, skipping language regeneration feature');
-            localStorage.removeItem('uploadedFile');
-          } else {
-            localStorage.setItem('uploadedFile', dataStr);
+      // ✅ UPDATE CONTEXT FIRST before navigation
+      updateSummaryData(data);
+      
+      // ✅ Handle file storage (optional, non-blocking)
+      try {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          try {
+            const fileData = {
+              name: files[0].name,
+              type: files[0].type,
+              size: files[0].size,
+              data: reader.result
+            };
+            
+            const dataStr = JSON.stringify(fileData);
+            
+            if (dataStr.length < 4.5 * 1024 * 1024) {
+              localStorage.setItem('uploadedFile', dataStr);
+            }
+          } catch (e) {
+            console.error('Error storing file:', e);
           }
-        } catch (e) {
-          console.error('Error storing file:', e);
-        }
-        
-        router.push(`/summarized?file=${encodeURIComponent(files[0].name)}`);
-      };
+        };
+        reader.readAsDataURL(files[0]);
+      } catch (e) {
+        console.error('FileReader error:', e);
+      }
       
-      reader.onerror = () => {
-        console.error('Error reading file');
-        router.push(`/summarized?file=${encodeURIComponent(files[0].name)}`);
-      };
-      
-      reader.readAsDataURL(files[0]);
+      // ✅ Navigate with router.push (no reload needed!)
+      router.push(`/summarized?file=${encodeURIComponent(files[0].name)}`);
 
     } catch (error) {
       console.error('Error:', error);

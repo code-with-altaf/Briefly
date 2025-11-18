@@ -32,13 +32,7 @@ interface SummaryContextType {
 
 const SummaryContext = createContext<SummaryContextType | undefined>(undefined);
 
-export const SummaryProvider = ({ children }: { children: ReactNode }) => {
-  const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
-  const [storyData, setStoryData] = useState<string[]>([]);
-  const [currentLanguage, setCurrentLanguage] = useState<string>('English');
-  const [isRegenerating, setIsRegenerating] = useState(false);
-
- const processStoryData = (story: unknown[]): string[] => {
+const processStoryData = (story: unknown[]): string[] => {
   return story.map((item: unknown) => {
     if (typeof item === "string") return item;
     
@@ -62,29 +56,83 @@ export const SummaryProvider = ({ children }: { children: ReactNode }) => {
   });
 };
 
-
-  useEffect(() => {
-    const loadData = () => {
-      try {
-        const storedData = localStorage.getItem('summaryData');
-        
-        if (storedData) {
-          const data = JSON.parse(storedData) as ApiResponse;
-          setSummaryData(data.summary);
-          setCurrentLanguage(data.language || 'English');
-          
-          if (data.story && data.story.length > 0) {
-            const processedStory = processStoryData(data.story);
-            setStoryData(processedStory);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading data from localStorage:', error);
+export const SummaryProvider = ({ children }: { children: ReactNode }) => {
+  // ✅ Initialize state directly from localStorage (lazy initialization)
+  const [summaryData, setSummaryData] = useState<SummaryData | null>(() => {
+    if (typeof window === 'undefined') return null;
+    
+    try {
+      const storedData = localStorage.getItem('summaryData');
+      if (storedData) {
+        const data = JSON.parse(storedData) as ApiResponse;
+        return data.summary || null;
       }
-    };
+    } catch (error) {
+      console.error('Error loading initial summary data:', error);
+      localStorage.removeItem('summaryData');
+    }
+    return null;
+  });
 
-    loadData();
-  }, []);
+  const [storyData, setStoryData] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    
+    try {
+      const storedData = localStorage.getItem('summaryData');
+      if (storedData) {
+        const data = JSON.parse(storedData) as ApiResponse;
+        if (data.story && data.story.length > 0) {
+          return processStoryData(data.story);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading initial story data:', error);
+    }
+    return [];
+  });
+
+  const [currentLanguage, setCurrentLanguage] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'English';
+    
+    try {
+      const storedData = localStorage.getItem('summaryData');
+      if (storedData) {
+        const data = JSON.parse(storedData) as ApiResponse;
+        return data.language || 'English';
+      }
+    } catch (error) {
+      console.error('Error loading language:', error);
+    }
+    return 'English';
+  });
+
+  const [isRegenerating, setIsRegenerating] = useState(false);
+
+  // ✅ Fallback useEffect to retry if initial load fails
+  useEffect(() => {
+    if (!summaryData && typeof window !== 'undefined') {
+      const timer = setTimeout(() => {
+        try {
+          const storedData = localStorage.getItem('summaryData');
+          if (storedData) {
+            console.log('Fallback loading data from localStorage');
+            const data = JSON.parse(storedData) as ApiResponse;
+            if (data.summary) {
+              setSummaryData(data.summary);
+              setCurrentLanguage(data.language || 'English');
+              if (data.story && data.story.length > 0) {
+                setStoryData(processStoryData(data.story));
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Fallback load failed:', error);
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [summaryData]);
 
   const updateSummaryData = (data: ApiResponse) => {
     setSummaryData(data.summary);
@@ -124,12 +172,10 @@ export const useSummary = () => {
 };
 
 // Helper function to render text with bold markdown (**text**)
-// Helper function to render text with bold markdown (**text**)
-// Helper function to render text with bold markdown (**text**) or strip asterisks
 export const renderTextWithBold = (text: string): React.ReactNode => {
   if (!text) return null;
   
-  // First, convert **text** to bold
+  // Convert **text** to bold
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   
   return parts.map((part, index) => {
@@ -143,5 +189,3 @@ export const renderTextWithBold = (text: string): React.ReactNode => {
     return <React.Fragment key={index}>{cleanedPart}</React.Fragment>;
   });
 };
-
-

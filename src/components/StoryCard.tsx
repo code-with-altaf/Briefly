@@ -11,7 +11,7 @@ const StoryCard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [storyData, setStoryData] = useState<string[]>([]);
   const [error, setError] = useState(false);
-  const [direction, setDirection] = useState(0); // 👈 NEW ( -1 = left, 1 = right )
+  const [direction, setDirection] = useState(0); // -1 = left, 1 = right
 
   useEffect(() => {
     const loadData = async () => {
@@ -60,10 +60,10 @@ const StoryCard: React.FC = () => {
     loadData();
   }, []);
 
-  // 🔥 ANIMATION VARIANTS (depends on direction)
+  // 🔥 FIXED ANIMATION VARIANTS
   const variants = {
     enter: (dir: number) => ({
-      x: dir === 1 ? 200 : -200,
+      x: dir === 1 ? 300 : -300, // ✅ Right (1) enters from +300, Left (-1) enters from -300
       opacity: 0,
     }),
     center: {
@@ -71,21 +71,21 @@ const StoryCard: React.FC = () => {
       opacity: 1,
     },
     exit: (dir: number) => ({
-      x: dir === 1 ? -200 : 200,
+      x: dir === 1 ? -300 : 300, // ✅ Right (1) exits to -300, Left (-1) exits to +300
       opacity: 0,
     }),
   };
 
   const next = () => {
     if (index < storyData.length - 1) {
-      setDirection(1); // 👉 NEXT = right side animation
+      setDirection(1); // 👉 NEXT = slide from right
       setIndex(index + 1);
     }
   };
 
   const prev = () => {
     if (index > 0) {
-      setDirection(-1); // 👈 PREVIOUS = left side animation
+      setDirection(-1); // 👈 PREVIOUS = slide from left
       setIndex(index - 1);
     }
   };
@@ -142,7 +142,11 @@ const StoryCard: React.FC = () => {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.4 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 300, 
+              damping: 30 
+            }}
             className="text-lg leading-relaxed z-10"
           >
             {storyData[index]}

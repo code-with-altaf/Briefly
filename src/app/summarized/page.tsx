@@ -453,7 +453,7 @@ function SummarizedContent() {
           <div className="bg-neutral-50 dark:bg-neutral-900 rounded-2xl p-6 border border-neutral-200 dark:border-neutral-800">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-black dark:text-white">
-                📄 Summary
+                 Summary
               </h2>
               <div className="flex items-center gap-2">
                 <CopyButton summaryData={summaryData} />
@@ -465,7 +465,7 @@ function SummarizedContent() {
               <div className="flex flex-col items-center justify-center py-10">
                 <IconRefresh size={32} className="animate-spin text-neutral-400 mb-3" />
                 <p className="text-sm text-neutral-600 dark:text-neutral-400 text-center">
-                  Regenerating in {currentLanguage}...
+                  Regenerating in selected language.....
                 </p>
               </div>
             ) : (

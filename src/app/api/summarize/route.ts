@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     
 Analyze the following PDF content and create:
 1. A comprehensive summary with 4 sections: Executive Summary, Key Points, Technical Details, and Conclusion
-2. A story-format version optimized for Instagram/social media (4 slides with engaging titles and concise content)
+2. A story-format version optimized for Instagram/social media (4 slides with engaging titles and concise content but dont add slide1, slide2 like that, just the content)
 
 **IMPORTANT**: Generate ALL content in ${language} language. Translate and adapt the content appropriately for ${language} speakers.
 

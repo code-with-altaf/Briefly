@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import StoryCard from "@/components/StoryCard";
 import { 
   IconLayoutGrid, 
   IconDeviceMobile, 
-  IconDownload, 
+  IconDownload,
   IconRefresh,
   IconFileTypePdf,
   IconFileTypeDocx,
@@ -18,6 +18,8 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { jsPDF } from 'jspdf';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
 import { saveAs } from 'file-saver';
+
+// ... (sare interfaces aur downloadSummary function same rahenge)
 
 interface SummarySection {
   heading: string;
@@ -188,7 +190,8 @@ const DownloadDropdown = ({ summaryData }: { summaryData: SummaryData }) => (
   </Menu>
 );
 
-export default function SummarizedPage() {
+// ✅ Separate component for useSearchParams
+function SummarizedContent() {
   const searchParams = useSearchParams();
   const fileName = searchParams.get("file");
   
@@ -218,7 +221,7 @@ export default function SummarizedPage() {
   return (
     <div className="min-h-screen w-full bg-white dark:bg-black py-10 px-2 md:px-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl md:text-5xl  hidden lg:block mb-6 font-bold text-center text-black dark:text-white">
+        <h1 className="text-3xl md:text-5xl hidden lg:block mb-6 font-bold text-center text-black dark:text-white">
           Your Summary is Ready! ⚡
         </h1>
         {fileName && (
@@ -255,8 +258,7 @@ export default function SummarizedPage() {
         </div>
       </div>
 
-      {/* ✅ FIXED: Desktop layout with sticky story card at top */}
-<div className="hidden lg:grid lg:grid-cols-2 gap-6 max-w-6xl mx-auto mt-10 px-6">
+      <div className="hidden lg:grid lg:grid-cols-2 gap-6 max-w-6xl mx-auto mt-10 px-6">
         <div className="bg-neutral-50 dark:bg-neutral-900 rounded-2xl p-8 border border-neutral-200 dark:border-neutral-800">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-black dark:text-white">
@@ -279,11 +281,9 @@ export default function SummarizedPage() {
           </div>
         </div>
 
-        {/* ✅ Story section with sticky positioning at top */}
         <div className="flex flex-col gap-4">
           <div className="sticky top-6 flex flex-col gap-4">
             <StoryCard />
-           
           </div>
         </div>
       </div>
@@ -314,10 +314,22 @@ export default function SummarizedPage() {
         ) : (
           <div className="flex flex-col items-center gap-4">
             <StoryCard />
-          
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+// ✅ Main export with Suspense wrapper
+export default function SummarizedPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen w-full bg-white dark:bg-black flex items-center justify-center">
+        <p className="text-black dark:text-white">Loading...</p>
+      </div>
+    }>
+      <SummarizedContent />
+    </Suspense>
   );
 }

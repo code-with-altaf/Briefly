@@ -449,7 +449,7 @@ function SummarizedContent() {
           <div className="bg-neutral-50 dark:bg-neutral-900 rounded-2xl p-6 border border-neutral-200 dark:border-neutral-800">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-black dark:text-white">
-                📄 Summary
+                Summary
               </h2>
               <div className="flex items-center gap-2">
                 <CopyButton summaryData={summaryData} />

@@ -117,14 +117,24 @@ export const useSummary = () => {
 };
 
 // Helper function to render text with bold markdown (**text**)
+// Helper function to render text with bold markdown (**text**)
+// Helper function to render text with bold markdown (**text**) or strip asterisks
 export const renderTextWithBold = (text: string): React.ReactNode => {
-  const parts = text.split(/(\*\*.*?\*\*)/g);
+  if (!text) return null;
+  
+  // First, convert **text** to bold
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
   
   return parts.map((part, index) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      // Remove the asterisks and make it bold
       const boldText = part.slice(2, -2);
       return <strong key={index} className="font-bold">{boldText}</strong>;
     }
-    return <React.Fragment key={index}>{part}</React.Fragment>;
+    // Clean up any remaining asterisks (both single * and double **)
+    const cleanedPart = part.replace(/\*\*/g, '').replace(/\*/g, '');
+    return <React.Fragment key={index}>{cleanedPart}</React.Fragment>;
   });
 };
+
+

@@ -1,5 +1,6 @@
 "use client";
 
+import { processStoryData } from '@/lib/summaryUtils';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface SummarySection {
@@ -32,32 +33,8 @@ interface SummaryContextType {
 
 const SummaryContext = createContext<SummaryContextType | undefined>(undefined);
 
-const processStoryData = (story: unknown[]): string[] => {
-  return story.map((item: unknown) => {
-    if (typeof item === "string") return item;
-    
-    if (item && typeof item === "object") {
-      const obj = item as Record<string, unknown>;
-      
-      // If it has both title and content, combine them
-      if (obj["title"] && obj["content"]) {
-        return `${obj["title"]}\n\n${obj["content"]}`;
-      }
-      
-      return (
-        (obj["content"] as string) ||
-        (obj["text"] as string) ||
-        (obj["title"] as string) ||
-        JSON.stringify(obj)
-      );
-    }
-    
-    return String(item);
-  });
-};
-
 export const SummaryProvider = ({ children }: { children: ReactNode }) => {
-  // ✅ Initialize state directly from localStorage (lazy initialization)
+  // Initialize state directly from localStorage (lazy initialization)
   const [summaryData, setSummaryData] = useState<SummaryData | null>(() => {
     if (typeof window === 'undefined') return null;
     
@@ -108,7 +85,7 @@ export const SummaryProvider = ({ children }: { children: ReactNode }) => {
 
   const [isRegenerating, setIsRegenerating] = useState(false);
 
-  // ✅ Fallback useEffect to retry if initial load fails
+  // Fallback useEffect to retry if initial load fails
   useEffect(() => {
     if (!summaryData && typeof window !== 'undefined') {
       const timer = setTimeout(() => {
@@ -169,23 +146,4 @@ export const useSummary = () => {
   }
   
   return context;
-};
-
-// Helper function to render text with bold markdown (**text**)
-export const renderTextWithBold = (text: string): React.ReactNode => {
-  if (!text) return null;
-  
-  // Convert **text** to bold
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  
-  return parts.map((part, index) => {
-    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
-      // Remove the asterisks and make it bold
-      const boldText = part.slice(2, -2);
-      return <strong key={index} className="font-bold">{boldText}</strong>;
-    }
-    // Clean up any remaining asterisks (both single * and double **)
-    const cleanedPart = part.replace(/\*\*/g, '').replace(/\*/g, '');
-    return <React.Fragment key={index}>{cleanedPart}</React.Fragment>;
-  });
 };

@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { renderTextWithBold, useSummary } from "@/context/SummaryContext";
+import {  useSummary } from "@/context/SummaryContext";
+import { renderTextWithBold } from "@/lib/summaryUtils";
 
 const StoryCard: React.FC = () => {
   const [index, setIndex] = useState(0);

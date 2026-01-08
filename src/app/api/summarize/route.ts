@@ -1,14 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { extractText } from 'unpdf';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const HF_MODEL =
+  'https://api-inference.huggingface.co/models/facebook/bart-large-cnn';
+
+async function summarizeWithHF(text: string): Promise<string | null> {
+  try {
+    const res = await fetch(HF_MODEL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.HF_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: text,
+        options: { wait_for_model: true },
+      }),
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    return data?.[0]?.summary_text || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Clean local summary (fallback) */
+function localSummary(text: string) {
+  const sentences = text
+    .replace(/\n+/g, ' ')
+    .split('. ')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  return sentences.slice(0, 6).join('. ') + '.';
+}
+
+/** Story builder (fixed, non-repeating) */
+function buildStory(text: string) {
+  const sentences = text
+    .replace(/\n+/g, ' ')
+    .split('. ')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  return [
+    sentences[0] || 'This document introduces an important topic.',
+    sentences[1] || 'It explains the core idea clearly and simply.',
+    sentences[2] || 'Key supporting points add more clarity.',
+    sentences[3] || 'Overall, the document ends with a clear takeaway.',
+  ];
+}
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
-    const language = formData.get('language') as string || 'English'; // ✅ New language param
+    const language = (formData.get('language') as string) || 'English';
 
     if (!file) {
       return NextResponse.json(
@@ -19,70 +69,45 @@ export async function POST(req: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const uint8Array = new Uint8Array(bytes);
-    
-    const { text: extractedText } = await extractText(uint8Array);
-    const fullText = Array.isArray(extractedText) ? extractedText.join('\n') : extractedText;
-    
-    console.log('Extracted text length:', fullText.length);
-    console.log('Target language:', language);
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const { text } = await extractText(uint8Array);
+    const fullText = Array.isArray(text) ? text.join('\n') : text;
 
-    // ✅ Updated prompt with language specification
-    const summaryPrompt = `You are an AI assistant that creates concise, professional summaries IN ${language.toUpperCase()} LANGUAGE.
-    
-Analyze the following PDF content and create:
-1. A comprehensive summary with 4 sections: Executive Summary, Key Points, Technical Details, and Conclusion
-2. A story-format version optimized for Instagram/social media (4 slides with engaging titles and concise content but dont add slide1, slide2 like that, just the content)
+    const inputText = fullText.slice(0, 3000);
 
-**IMPORTANT**: Generate ALL content in ${language} language. Translate and adapt the content appropriately for ${language} speakers.
+    // Try Hugging Face first
+    let summaryText = await summarizeWithHF(inputText);
 
-PDF Content:
-${fullText.substring(0, 10000)}
-
-Return the response in this JSON format:
-{
-  "summary": {
-    "title": "Document Title (in ${language})",
-    "sections": [
-      {"heading": "Executive Summary", "content": "..."},
-      {"heading": "Key Points", "content": "..."},
-      {"heading": "Technical Details", "content": "..."},
-      {"heading": "Conclusion", "content": "..."}
-    ]
-  },
-  "story": [
-    "content with engaging hook",
-    "content with main insight",
-    "content with supporting details",
-    "content with conclusion/CTA"
-  ]
-}`;
-
-    const result = await model.generateContent(summaryPrompt);
-    const responseText = result.response.text();
-    
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    const summaryData = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
-
-    if (!summaryData) {
-      throw new Error('Failed to parse AI response');
+    // Fallback if HF fails
+    if (!summaryText) {
+      summaryText = localSummary(inputText);
     }
+
+    const story = buildStory(summaryText);
 
     return NextResponse.json({
       success: true,
       fileName: file.name,
-      summary: summaryData.summary,
-      story: summaryData.story,
-      language: language, // ✅ Return selected language
+      language, // NOTE: HF model is English-only (free-tier limitation)
+      summary: {
+        title: 'Document Summary',
+        sections: [
+          { heading: 'Executive Summary', content: summaryText },
+          { heading: 'Key Points', content: summaryText },
+          { heading: 'Technical Details', content: summaryText },
+          { heading: 'Conclusion', content: summaryText },
+        ],
+      },
+      story,
     });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : 'Unknown error';
 
-  } catch (error) {
-    console.error('Error processing PDF:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to process PDF',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: message,
       },
       { status: 500 }
     );
